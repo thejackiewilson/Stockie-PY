@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+    <title>Stockie App</title>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand text-primary" href="#index.html">TheStockie.App</a>
+          <button class="navbar-toggler text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active text-primary" aria-current="page" href="#index.html"/">Home</a>
+              </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <br>
+    <h1 class="text-center" > The Stockie App</h1>
+      <br>
+    <!-- Distribution Plot Form -->
+    <h3 class="text-center">{{ stock_name }} Distribution Plot</h3>
+    <form action="{{ url_for('index') }}" method="POST" class="text-center">
+        <label for="stock_name" class="center">Stock Ticker:</label>
+        <input type="text" id="stock_name" name="stock_name" required>
+        <label for="period" class="center">Period:</label>
+        <select id="period" name="period">
+            <!-- Period options here -->
+            <option value="1d">1 day</option>
+            <option value="5d">5 days</option>
+            <option value="1mo">1 month</option>
+            <option value="3mo">3 months</option>
+            <option value="6mo">6 months</option>
+            <option value="1y">1 year</option>
+            <option value="2y">2 years</option>
+            <option value="5y">5 years</option>
+            <option value="10y">10 years</option>
+            <option value="ytd">YTD</option>
+        </select>
+        <input type="submit" value="Generate plot" class="center">
+    </form>
+    {% if plot %}
+        <div class="text-center">
+            <img src="data:image/png;base64,{{ plot }}" alt="Stock Returns Distribution plot">
+        </div>
+    {% endif %}
+    
+    {% if stock_name %}
+      <h3 class="text-center">{{ stock_name }} Performance</h3>
+      <p class="text-center">Last price: {{ last_price }}</p>
+      <p class="text-center">50-day Moving Average: {{ ma50 }}</p>
+      <p class="text-center">200-day Moving Average: {{ ma200 }}</p>
+      {% if success %}
+        <p class="text-center">The 50-day moving average is above the 200-day moving average, indicating a bullish trend.</p>
+      {% else %}
+        <p class="text-center">The 50-day moving average is below the 200-day moving average, indicating a bearish trend.</p>
+      {% endif %}
+    {% endif %}
+
+    <h3 class="text-center">{{ stock_name }} Technical Indicators</h3>
+        <p class="text-center">RSI: {{ rsi }}</p>
+        <p class="text-center">MACD: {{ macd }}</p>
+        <p class="text-center">Bollinger Bands: {{ bb_upper }}, {{ bb_middle }}, {{ bb_lower }}</p>
+        <p class="text-center">Stochastic Oscillator: %K {{ stochastic_k }}, %D {{ stochastic_d }}</p>
+    
+    <h3 class="text-center">{{ stock_name }} Earnings and Revenue Growth</h3>
+    {% if earnings_revenue_growth %}
+    {% for year, growth in earnings_revenue_growth.items() %}
+      <tr>
+        <td style="text-align: center;">{{ year }}</td>
+        <td>{{ growth['earnings']|round(2) }}%</td>
+        <td>{{ growth['revenue']|round(2) }}%</td>
+      </tr>
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td class="centered-text" colspan="3">No data available</td>
+    </tr>
+  {% endif %}
+  
+
+
+
+    <div class="card-footer bg-light border-secondary text-primary text-center">TheStockie.App | Made by Jackie W.</div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js" integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N" crossorigin="anonymous"></script>
+</body>
+</html>

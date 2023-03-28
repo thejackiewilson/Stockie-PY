@@ -5,20 +5,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
-    <title>Stockie App</title>
+    <title>Stockie PY</title>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand text-primary" href="#index.html">TheStockie.App</a>
+          <a class="navbar-brand text-primary" href="#index.html"><h4>Stockie PY</h4></a>
           <button class="navbar-toggler text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link active text-primary" aria-current="page" href="#index.html"/">Home</a>
+                <a class="nav-link active text-primary" aria-current="page" href="index.html"/">Home</a>
               </li>
                 </ul>
               </li>
@@ -27,7 +27,7 @@
         </div>
       </nav>
       <br>
-    <h1 class="text-center text-primary" > The Stockie App</h1>
+    <h1 class="text-center text-primary" >Stockie PY</h1>
 
     <br>
 
@@ -48,8 +48,23 @@
           <option value="10y">10 years</option>
           <option value="ytd">YTD</option>
       </select>
-      <input type="submit" value="Generate plot" class="center">
+      <input type="submit" value="Analzye" class="center">
   </form>
+
+  <br><hr><br>
+
+  {% if stock_name %}
+    <div class="container">
+        <h3 class="text-center text-primary">{{ stock_name }} Summary</h3>
+        <br>
+        <div class="card">
+            <div class="card-body">
+                {{ summary_text }}
+            </div>
+        </div>
+    </div>
+  {% endif %}
+
       <br><hr>
     <!-- Distribution Plot  -->
     <br>
@@ -90,26 +105,28 @@
             <p class="text-center">Bollinger Bands: {{ bb_upper }}, {{ bb_middle }}, {{ bb_lower }}</p>
             <p class="text-center">Stochastic Oscillator: %K {{ stochastic_k }}, %D {{ stochastic_d }}</p>
           <br><hr>
-        <br><h3 class="text-center text-primary">{{ stock_name }} Earnings and Revenue Growth</h3><br>
-        {% if earnings_revenue_growth %}
-        {% for year, growth in earnings_revenue_growth.items() %}
-          <tr>
-            <td style="text-align: center;">{{ year }}</td>
-            <td>{{ growth['earnings']|round(2) }}%</td>
-            <td>{{ growth['revenue']|round(2) }}%</td>
-          </tr>
-        {% endfor %}
-        {% else %}
-        <tr>
-          <td class="centered-text" colspan="3">No data available</td>
-        </tr>
-      {% endif %}
-    {% endif %}
-  
 
-<br><br>
+        
+        <!--
+                <br><h3 class="text-center text-primary">{{ stock_name }} Earnings and Revenue Growth</h3><br>
+              {% if earnings_revenue_growth %}
+              {% for year, growth in earnings_revenue_growth.items() %}
+                <tr>
+                  <td style="text-align: center;">{{ year }}</td>
+                  <td>{{ growth['earnings']|round(2) }}%</td>
+                  <td>{{ growth['revenue']|round(2) }}%</td>
+                </tr>
+              {% endfor %}
+              {% else %}
+              <tr>
+                <td class="centered-text" colspan="3">No data available</td>
+              </tr>
+            {% endif %}
+          {% endif %}
+        -->
 
-    <div class="card-footer bg-light border-secondary text-primary text-center">TheStockie.App | A finance flask app made by Jackie W.</div>
+
+    <div class="card-footer bg-light border-secondary text-primary text-center"><h4>Stockie PY &#169; 2023 | A flask app tailored for stock analysis around price action | Made by Jackie W.</h4></div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/js/bootstrap.bundle.min.js" integrity="sha384-qKXV1j0HvMUeCBQ+QVp7JcfGl760yU08IQ+GpUo5hlbpg51QRiuqHAJz8+BrxE/N" crossorigin="anonymous"></script>
 </body>

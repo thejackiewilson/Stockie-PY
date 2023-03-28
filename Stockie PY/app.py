@@ -7,6 +7,7 @@ import yfinance as yf
 import seaborn as sns
 import io
 from io import BytesIO
+import edgar
 import base64
 import ta
 import time as time
@@ -35,6 +36,7 @@ def index():
         returns = get_stock_returns(stock_name, period)
         distribution_plot_base64 = generate_distribution_plot(returns)
         ma_plot_base64 = generate_ma_plot(stock_data)
+        
 
 
         # Calculate moving averages
@@ -60,9 +62,12 @@ def index():
         stochastic_d = stoch.stoch_signal().iloc[-1]
 
         # Get earnings and revenue growth
-        earnings_revenue_growth = get_earnings_revenue_growth(stock_name)
+        #earnings_revenue_growth = get_earnings_revenue_growth(stock_name)
+        
+        #Generate Summary
+        summary_text = generate_summary(stock_name, last_price, ma50, ma200, rsi, macd)
 
-        return render_template('index.html', stock_name=stock_name, last_price=last_price, ma50=ma50, ma200=ma200, success=success, distribution_plot=distribution_plot_base64, ma_plot=ma_plot_base64, rsi=rsi, macd=macd, bb_upper=bb_upper, bb_middle=bb_middle, bb_lower=bb_lower, stochastic_k=stochastic_k, stochastic_d=stochastic_d, earnings_revenue_growth=earnings_revenue_growth)
+        return render_template('index.html', stock_name=stock_name, last_price=last_price, ma50=ma50, ma200=ma200, success=success, distribution_plot=distribution_plot_base64, ma_plot=ma_plot_base64, rsi=rsi, macd=macd, bb_upper=bb_upper, bb_middle=bb_middle, bb_lower=bb_lower, stochastic_k=stochastic_k, stochastic_d=stochastic_d, summary_text=summary_text)
     else:
         return render_template('index.html')
 
@@ -120,8 +125,31 @@ FRED_API_KEY = os.getenv('FRED_API_KEY')
 fred = Fred(api_key=FRED_API_KEY)
 ts = TimeSeries(key=ALPHA_VANTAGE_API_KEY, output_format='pandas')
 
+def generate_summary(stock_name, last_price, ma50, ma200, rsi, macd):
+    summary = []
+
+    if ma50 > ma200:
+        summary.append(f"{stock_name} has a positive trend, with the 50-day moving average being higher than the 200-day moving average.")
+    else:
+        summary.append(f"{stock_name} has a negative trend, with the 50-day moving average being lower than the 200-day moving average.")
+    
+    if rsi < 30:
+        summary.append(f"The RSI is {rsi}, indicating that the stock may be oversold.")
+    elif rsi > 70:
+        summary.append(f"The RSI is {rsi}, indicating that the stock may be overbought.")
+    else:
+        summary.append(f"The RSI is {rsi}, indicating that the stock is currently neither overbought nor oversold.")
+    
+    if macd > 0:
+        summary.append(f"The MACD is {macd}, suggesting a bullish trend.")
+    else:
+        summary.append(f"The MACD is {macd}, suggesting a bearish trend.")
+
+    return " ".join(summary)
+
+
 # Get earnings and revenue growth function
-def get_earnings_revenue_growth(stock_name):
+#def get_earnings_revenue_growth(stock_name):
     stock = yf.Ticker(stock_name)
     retries = 3
     delay = 5  # 5 seconds delay

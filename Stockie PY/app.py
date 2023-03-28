@@ -4,15 +4,24 @@ import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
 import yfinance as yf
+import seaborn as sns
 import io
 from io import BytesIO
 import base64
 import ta
 import time as time
+import requests
+import os
+import json 
 
+from dotenv import load_dotenv
+from alpha_vantage.timeseries import TimeSeries
+from alpha_vantage.fundamentaldata import FundamentalData
+from fredapi import Fred 
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
+
 
 # Index route
 @app.route("/", methods=["GET", "POST"])
@@ -20,10 +29,13 @@ def index():
     current_time = time.time()
     if request.method == 'POST':
         stock_name = request.form['stock_name']
+        stock_data = get_stock_data(stock_name)
         # Get stock returns and generate the distribution plot
         period = request.form.get("period", "1y")
         returns = get_stock_returns(stock_name, period)
-        plot_base64 = generate_plot(returns)
+        distribution_plot_base64 = generate_distribution_plot(returns)
+        ma_plot_base64 = generate_ma_plot(stock_data)
+
 
         # Calculate moving averages
         stock_data = yf.Ticker(stock_name).history(period='1y')
@@ -50,9 +62,20 @@ def index():
         # Get earnings and revenue growth
         earnings_revenue_growth = get_earnings_revenue_growth(stock_name)
 
-        return render_template('index.html', stock_name=stock_name, last_price=last_price, ma50=ma50, ma200=ma200, success=success, plot=plot_base64, rsi=rsi, macd=macd, bb_upper=bb_upper, bb_middle=bb_middle, bb_lower=bb_lower, stochastic_k=stochastic_k, stochastic_d=stochastic_d, earnings_revenue_growth=earnings_revenue_growth)
+        return render_template('index.html', stock_name=stock_name, last_price=last_price, ma50=ma50, ma200=ma200, success=success, distribution_plot=distribution_plot_base64, ma_plot=ma_plot_base64, rsi=rsi, macd=macd, bb_upper=bb_upper, bb_middle=bb_middle, bb_lower=bb_lower, stochastic_k=stochastic_k, stochastic_d=stochastic_d, earnings_revenue_growth=earnings_revenue_growth)
     else:
         return render_template('index.html')
+
+# Generate Stock Data
+def get_stock_data(ticker, period='1y'):
+    stock = yf.Ticker(ticker)
+    stock_history = stock.history(period=period)
+    if stock_history.empty:
+        return None
+    stock_history['Returns'] = stock_history['Close'].pct_change()
+    stock_history['MA50'] = stock_history['Close'].rolling(window=50).mean()
+    stock_history['MA200'] = stock_history['Close'].rolling(window=200).mean()
+    return stock_history
 
 # Get stock returns function
 def get_stock_returns(ticker, period):
@@ -61,21 +84,41 @@ def get_stock_returns(ticker, period):
     stock_history['Returns'] = stock_history['Close'].pct_change()
     return stock_history['Returns'].dropna()
 
-# Generate plot function
-def generate_plot(returns):
+# Generate distribution plot function
+def generate_distribution_plot(returns):
     plt.hist(returns, bins=30, density=True, alpha=0.6, color="b")
     plt.xlabel("Returns")
     plt.ylabel("Frequency")
     plt.title("Stock Returns Distribution Plot")
-
     buf = BytesIO()
     plt.savefig(buf, format="png")
     plt.close()
-
     plot_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
     buf.close()
-
     return plot_base64
+
+# Generate MA Plot Function
+def generate_ma_plot(stock_data):
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(data=stock_data[['Close', 'MA50', 'MA200']])
+    plt.title("Stock Price with 50-day and 200-day Moving Averages")
+    plt.xlabel("Date")
+    plt.ylabel("Price")
+    buf = BytesIO()
+    plt.savefig(buf, format="png")
+    plt.close()
+    plot_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    buf.close()
+    return plot_base64
+
+# Load environment variables from .env file
+load_dotenv()
+
+ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+FRED_API_KEY = os.getenv('FRED_API_KEY')
+
+fred = Fred(api_key=FRED_API_KEY)
+ts = TimeSeries(key=ALPHA_VANTAGE_API_KEY, output_format='pandas')
 
 # Get earnings and revenue growth function
 def get_earnings_revenue_growth(stock_name):
@@ -85,16 +128,19 @@ def get_earnings_revenue_growth(stock_name):
 
     for i in range(retries):
         try:
-            financials = stock.financials.T
+            financials = stock.financials
+            if financials.empty:
+                raise Exception("Empty financials data")
             break
         except Exception as e:
+            print(f"Error fetching financials: {e}")
             if i < retries - 1:
-                print(f"Error fetching financials. Retrying in {delay} seconds...")
+                print(f"Retrying in {delay} seconds...")
                 time.sleep(delay)
             else:
-                print("Error fetching financials. Aborting.")
+                print("Aborting.")
                 return {}
-    financials = stock.financials.T
+    financials = financials.T
     financials['Earnings Growth'] = financials['Gross Profit'].pct_change() * 100
     financials['Revenue Growth'] = financials['Total Revenue'].pct_change() * 100
 
@@ -107,6 +153,8 @@ def get_earnings_revenue_growth(stock_name):
         }
 
     return growth_data
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

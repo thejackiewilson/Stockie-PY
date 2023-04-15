@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+          <title>Market Newsie JS</title>
+      </head>
+      <body onload="updateTrendText()">
+
+        <nav class="navbar navbar-expand-lg bg-light">
+            <div class="container-fluid">
+              <a class="navbar-brand text-primary" href="#index.html"><h4>Stockie PY</h4></a>
+              <button class="navbar-toggler text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                  <li class="nav-item">
+                   <a class="nav-link active text-primary" aria-current="page" href="index.html">Home</a>
+                   <a class="nav-link active text-primary" aria-current="page" href="marketnewsie.html">Market Newsie JS</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+        </nav>
+    <br>
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Market Newsie</h1>
+        {% if news and news|length %}
+            {% for source in news %}
+                <div class="news-box">
+                    <h2 class="text-center">{{ source.sourceName }} Newsie</h2>
+                    {% if source.newsItems and source.newsItems|length %}
+                        <div class="d-flex flex-wrap justify-content-center">
+                            {% for item in source.newsItems %}
+                                <div class="list-group-item">
+                                    <a href="{{ item.url }}">{{ item.title }}</a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">No news items found for {{ source.sourceName }}.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No news items found.</p>
+        {% endif %}
+    </div>
+
+    <div class="footer text-center">
+        <p>Market Newsie JS &#169; 2023 | A JavaScript web app tailored for market news | Made by Jackie W.</p>
+    </div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
